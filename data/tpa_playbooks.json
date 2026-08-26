@@ -1,0 +1,52 @@
+[
+  {
+    "id": "prec_01",
+    "category": "MED_NECESSITY",
+    "tpa_target": "Star Health and Allied Insurance",
+    "title": "Active Line of Treatment Disputed in Day-Care Laparoscopy",
+    "citation": "IRDAI Master Circular 2024 Clause 19.3 & Ombudsman Mumbai Order 2024/MUM/882",
+    "ruling_summary": "Insurers cannot arbitrarily categorize laparoscopic surgery as non-emergency or OPD-manageable when acute surgical intervention is indicated by treating physician with elevated inflammatory markers.",
+    "legal_argument_template": "The repudiation under clause 'Not Medically Necessary' is legally unsustainable. Under IRDAI Master Circular on Health Insurance (Clause 19.3), clinical judgment of the registered treating surgeon takes legal precedence over desk assessor determinations when operative findings confirm pathology. The patient exhibited acute symptoms requiring general anesthesia and surgical resection.",
+    "clinical_justification_keywords": ["acute onset", "leukocytosis", "peritoneal irritation", "general anesthesia", "histopathology indicated"]
+  },
+  {
+    "id": "prec_02",
+    "category": "PRE_EXISTING",
+    "tpa_target": "Care Health Insurance",
+    "title": "Unsubstantiated Pre-Existing Disease (PED) Allegation",
+    "citation": "Supreme Court Ruling: Manmohan Nanda vs United India Insurance & IRDAI Reg 11",
+    "ruling_summary": "The burden of proving a pre-existing condition rests entirely on the insurer with documentary clinical evidence preceding the policy inception date. Casual mentions or first-time diagnosis during hospitalization cannot be presumed pre-existing.",
+    "legal_argument_template": "Under the landmark Supreme Court judgment (Civil Appeal No. 8386/2015), the onus of proving non-disclosure of PED is strictly upon the insurer through documentary evidence prior to policy inception. Diagnostic findings during current admission represent acute exacerbation and not pre-policy knowledge.",
+    "clinical_justification_keywords": ["acute manifestation", "no prior consultation records", "first ultrasound documentation", "incidental finding"]
+  },
+  {
+    "id": "prec_03",
+    "category": "DAY_CARE",
+    "tpa_target": "Medi Assist TPA",
+    "title": "Rejection of Inpatient Stay for Dengue Thrombocytopenia",
+    "citation": "IRDAI Circular No. IRDAI/HLT/REG/CIR/193/07/2020 & Delhi Ombudsman Ruling 2024/DEL/104",
+    "ruling_summary": "Inpatient admission is clinically mandatory when platelet counts drop below 50,000/mcL or when hemorrhagic warning signs are present, superseding standard day-care exclusions.",
+    "legal_argument_template": "The patient presented with NS1 positive Dengue with rapid platelet decline to <42,000/mcL, placing them at acute risk of hemorrhagic shock. IRDAI clinical admission protocol mandates continuous vital monitoring and IV fluid resuscitation for platelet counts <50,000/mcL.",
+    "clinical_justification_keywords": ["NS1 positive", "thrombocytopenia <50k", "vital instability", "IV crystalloid resuscitation", "bleeding precaution"]
+  },
+  {
+    "id": "prec_04",
+    "category": "SUB_LIMIT",
+    "tpa_target": "HDFC ERGO General Insurance",
+    "title": "Arbitrary Room Rent Proportionate Deduction Overcharge",
+    "citation": "National Consumer Disputes Redressal Commission (NCDRC) Order RP/2841/2019",
+    "ruling_summary": "Proportionate deductions are applicable strictly to associated room tariff services, and cannot be proportionally deducted from medicines, surgical implants, or fixed package consumable tariffs.",
+    "legal_argument_template": "The TPA has erroneously applied proportionate deductions across fixed medical consumables and surgical implant invoices. Under NCDRC precedent, proportionate reduction is confined solely to room-rent linked fees and does not extend to non-tariff medical devices or standard pharmacy billing.",
+    "clinical_justification_keywords": ["implant invoice separate", "fixed MRP items", "pharmacy non-associable", "statutory capping"]
+  },
+  {
+    "id": "prec_05",
+    "category": "DOCUMENTATION",
+    "tpa_target": "Paramount Health Services TPA",
+    "title": "Repudiation Due to Missing Pre-Operative Indoor Case Sheet Signature",
+    "citation": "IRDAI Guidelines on Standardisation of Health Insurance Claims (Section IV)",
+    "ruling_summary": "Procedural omissions such as counter-signatures cannot invalidate substantive medical care verified by billing records, diagnostic radiology, and patient discharge signatures.",
+    "legal_argument_template": "We enclose the verified counter-signed indoor case record along with the treating doctor's biometric confirmation. Under IRDAI standardization regulations, substantive claims cannot be repudiated solely due to procedural clarification delays if medical records corroborate treatment.",
+    "clinical_justification_keywords": ["counter-signed indoor record", "biometric doctor verification", "radiology corroboration", "admission register entry"]
+  }
+]

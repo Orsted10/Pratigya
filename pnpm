@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+exec "C:/Users/ankan/AppData/Roaming/npm/pnpm.cmd" "$@"

@@ -1,0 +1,110 @@
+{
+  "components": [
+    {
+      "id": "webhook_intake",
+      "provider": "webhook",
+      "config": {
+        "hideForm": true,
+        "mode": "Source",
+        "parameters": {},
+        "type": "webhook"
+      }
+    },
+    {
+      "id": "anonymize_phi",
+      "provider": "anonymize_text",
+      "config": {
+        "parameters": {
+          "mask_type": "hash",
+          "preserve_clinical_terms": true
+        }
+      },
+      "input": [
+        {
+          "lane": "text",
+          "from": "webhook_intake"
+        }
+      ]
+    },
+    {
+      "id": "groq_clinical_extractor",
+      "provider": "llm_openai_api",
+      "config": {
+        "profile": "groq",
+        "groq": {
+          "base_url": "https://api.groq.com/openai/v1",
+          "api_key": "${GROQ_API_KEY}",
+          "model": "openai/gpt-oss-120b",
+          "temperature": 0.1
+        },
+        "parameters": {
+          "system_prompt": "You are the PRATIGYA Clinical Denial Extraction Agent. Parse the input hospital denial letter or claim bill into structured JSON: { patient_name, abha_id, claim_id, policy_number, tpa_name, hospital_name, procedure_name, icd10_code, billed_amount, denied_amount, denial_code, denial_reason_raw, denial_category, appeal_deadline, confidence_score }."
+        }
+      },
+      "input": [
+        {
+          "lane": "questions",
+          "from": "anonymize_phi"
+        }
+      ]
+    },
+    {
+      "id": "memory_precedents",
+      "provider": "memory_internal",
+      "config": {
+        "type": "memory_internal",
+        "parameters": {
+          "context_window": 5
+        }
+      }
+    },
+    {
+      "id": "groq_appeal_generator",
+      "provider": "llm_openai_api",
+      "config": {
+        "profile": "groq",
+        "groq": {
+          "base_url": "https://api.groq.com/openai/v1",
+          "api_key": "${GROQ_API_KEY}",
+          "model": "qwen/qwen3.8-27b",
+          "temperature": 0.2
+        },
+        "parameters": {
+          "system_prompt": "You are the PRATIGYA Legal Appeals Agent for Indian Hospitals. Using the extracted claim data and IRDAI Master Circular 2024 precedents, generate: 1. A formal, authoritative Appeal Petition addressed to the TPA Grievance Redressal Officer citing exact IRDAI circular clauses. 2. A clear, empathetic clinical justification summary in Devanagari Hindi for the hospital medical superintendent. 3. Evaluation of recoverability score and whether human doctor sign-off is mandated."
+        }
+      },
+      "input": [
+        {
+          "lane": "questions",
+          "from": "groq_clinical_extractor"
+        }
+      ],
+      "control": [
+        {
+          "lane": "memory",
+          "from": "memory_precedents"
+        }
+      ]
+    },
+    {
+      "id": "response_output",
+      "provider": "response_json",
+      "config": {
+        "laneName": "json"
+      },
+      "input": [
+        {
+          "lane": "json",
+          "from": "groq_appeal_generator"
+        }
+      ]
+    }
+  ],
+  "project_id": "b842df19-a92e-4b21-a3f2-10f829ec9912",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "version": 1
+}
