@@ -3,14 +3,15 @@
 // Built on RocketRide Engine for India's 500,000+ Hospitals & Nursing Homes
 // =============================================================================
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import type { ShellAppProps } from 'shell';
 import { AppLayout } from 'shell';
 
 // Types & Data
 import { DenialClaim, UserProfile } from './types/claims';
 import { REAL_INDIAN_CLAIMS } from './data/realClaims';
-import { callGroqPipeline } from './services/groqService';
+import { callGroqPipeline, processUploadedDocumentWithGroq } from './services/groqService';
+import { extractTextFromFile } from './services/pdfParserService';
 
 // Modular Components & Pages
 import { Navbar } from './components/Navbar';
@@ -245,10 +246,11 @@ const PratigyaDesk: React.FC<ShellAppProps> = ({ isConnected = true, identity })
     email: 'dr.anjali@shivamhospital.in'
   });
 
-  // State: 100% Real Indian Hospital Claim Records
+  // State: Real Claims
   const [claims, setClaims] = useState<DenialClaim[]>(REAL_INDIAN_CLAIMS);
   const [selectedClaim, setSelectedClaim] = useState<DenialClaim>(REAL_INDIAN_CLAIMS[0]);
   const [uploadedFilesList, setUploadedFilesList] = useState<string[]>([]);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [isExecutingPipeline, setIsExecutingPipeline] = useState(false);
   const [activeExecutingNode, setActiveExecutingNode] = useState(0);
   const [liveEngineLogs, setLiveEngineLogs] = useState<string[]>([]);
@@ -260,57 +262,59 @@ const PratigyaDesk: React.FC<ShellAppProps> = ({ isConnected = true, identity })
   const totalRecovered = claims.reduce((acc, c) => acc + (c.status === 'RECOVERED' ? c.deniedAmount : 0), 0);
   const projectedRecovery = Math.round(totalHeld * 0.82);
 
-  // File Upload Handler
-  const handleRealFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Real File Upload & Groq LPU Parsing Execution
+  const handleRealFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    const newFileName = file.name;
-    setUploadedFilesList(prev => [newFileName, ...prev]);
+    setIsProcessingFile(true);
+    setUploadedFilesList(prev => [file.name, ...prev]);
 
-    const newClaimId = `CLM-2026-NAG-0${claims.length + 1}`;
-    const newParsedClaim: DenialClaim = {
-      id: newClaimId,
-      patientName: file.name.includes('Patil') ? 'Rameshwar Patil' : 'Gajanan M. Deshpande',
-      age: 48,
-      gender: 'Male',
-      abhaId: '91-5829-1192-3301',
-      policyNo: 'STAR-IND-2024-99182',
-      tpaName: 'Star Health & Allied Insurance',
-      hospitalName: currentUser.hospital,
-      procedureName: 'Emergency Laparoscopic Appendectomy',
-      icd10: 'K35.80',
-      admissionDate: '2026-08-20',
-      dischargeDate: '2026-08-22',
-      billedAmount: 72000,
-      deniedAmount: 58000,
-      denialCode: 'IRDAI-DEN-047',
-      denialReasonRaw: 'Active Line of Treatment Disputed. Inpatient stay not warranted based on discharge summary.',
-      category: 'MED_NECESSITY',
-      deadlineDays: 7,
-      status: 'PENDING_REVIEW',
-      confidenceScore: 89.0,
-      clinicalVitals: 'WBC 17,200/mcL, Ultrasound verified inflamed appendix wall thickness 8.4mm.',
-      matchedCitation: 'IRDAI Master Circular 2024 Clause 19.3 & Ombudsman Mumbai Order 2024/MUM/882',
-      uploadedFileName: newFileName,
-      appealLetterEn: `To: The Grievance Redressal Officer, Star Health and Allied Insurance Co. Ltd.
-Subject: Rebuttal of Disallowed Claim ${newClaimId} Under IRDAI Master Circular Clause 19.3
+    try {
+      // 1. Read document bytes / text
+      const extractedText = await extractTextFromFile(file);
+      
+      // 2. Run Groq LPU 120B Fact Extraction + Groq Qwen Appeal Generation
+      const newParsedClaim = await processUploadedDocumentWithGroq(
+        extractedText,
+        file.name,
+        currentUser.hospital
+      );
 
-Respected Officer,
-We submit this formal appeal on behalf of ${currentUser.hospital} regarding patient Gajanan M. Deshpande.
-1. Under IRDAI Master Circular Clause 19.3, treating registered surgeon clinical diagnosis overrides desk assessor determinations.
-2. Clinical emergency verified by WBC 17,200/mcL and USG evidence of acute appendicitis.
-3. We request immediate reversal and settlement of Rs. 58,000.
+      // 3. Update claims & state
+      setClaims(prev => [newParsedClaim, ...prev]);
+      setSelectedClaim(newParsedClaim);
+      
+      // 4. Switch to 7-Node Engine Studio to see the real pipeline run!
+      setActiveAppTab('engine_studio');
+    } catch (err) {
+      console.error('File parsing error:', err);
+    } finally {
+      setIsProcessingFile(false);
+    }
+  };
 
-Sincerely,
-${currentUser.name}`,
-      clinicalSummaryHi: `प्रिय चिकित्सा अधीक्षक, नए अपलोड किए गए दस्तावेज के आधार पर स्टार हेल्थ की अस्वीकृति के खिलाफ अपील तैयार कर दी गई है। सफलता की संभावना 89% है।`
-    };
+  // 1-Click Sample Case Processor
+  const handleSelectSampleCase = async (caseName: string, caseText: string) => {
+    setIsProcessingFile(true);
+    setUploadedFilesList(prev => [caseName, ...prev]);
 
-    setClaims(prev => [newParsedClaim, ...prev]);
-    setSelectedClaim(newParsedClaim);
-    setActiveAppTab('engine_studio');
+    try {
+      const newParsedClaim = await processUploadedDocumentWithGroq(
+        caseText,
+        caseName,
+        currentUser.hospital
+      );
+
+      setClaims(prev => [newParsedClaim, ...prev]);
+      setSelectedClaim(newParsedClaim);
+      setActiveAppTab('engine_studio');
+    } catch (err) {
+      console.error('Sample processing error:', err);
+    } finally {
+      setIsProcessingFile(false);
+    }
   };
 
   const handleSignAndApprove = (claimId: string) => {
@@ -407,7 +411,9 @@ ${currentUser.name}`,
               onTriggerUpload={() => {
                 if (fileInputRef.current) fileInputRef.current.click();
               }}
+              onSelectSampleCase={handleSelectSampleCase}
               uploadedFilesList={uploadedFilesList}
+              isProcessing={isProcessingFile}
             />
           )}
 
