@@ -3,7 +3,7 @@
 // Built on RocketRide Engine for India's 500,000+ Hospitals & Nursing Homes
 // =============================================================================
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { ShellAppProps } from 'shell';
 import { AppLayout } from 'shell';
 
@@ -54,17 +54,36 @@ const LUXURY_CREAM_CSS = `
 
 * { box-sizing: border-box; }
 
-body {
+html, body, #root {
   margin: 0;
+  padding: 0;
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden;
   font-family: var(--font-sans);
   background-color: var(--bg-cream);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
 }
 
+.app-root-container {
+  min-height: 100vh;
+  height: auto !important;
+  overflow-y: auto !important;
+  padding: 24px 32px 140px 32px;
+  background-color: var(--bg-cream);
+}
+
 @keyframes fadeInSlideUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlowWarm {
+  0% { box-shadow: 0 0 0 0 rgba(224, 90, 27, 0.4); }
+  70% { box-shadow: 0 0 0 12px rgba(224, 90, 27, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(224, 90, 27, 0); }
 }
 
 .cream-card {
@@ -291,42 +310,7 @@ ${currentUser.name}`,
 
     setClaims(prev => [newParsedClaim, ...prev]);
     setSelectedClaim(newParsedClaim);
-    runLive7NodePipeline(newParsedClaim.patientName);
-  };
-
-  // Pipeline Execution
-  const runLive7NodePipeline = async (claimPatientName?: string) => {
-    setIsExecutingPipeline(true);
-    setActiveExecutingNode(1);
-    setLiveEngineLogs([`[NODE 1 · Dropper] Ingesting document: ${claimPatientName || 'Active Claim Document'} into RocketRide stream...`]);
-
-    await new Promise(r => setTimeout(r, 400));
-    setActiveExecutingNode(2);
-    setLiveEngineLogs(prev => [...prev, '[NODE 2 · Fact Extractor] Groq LPU gpt-oss-120b parsing Patient ABHA, Policy, ICD-10 & Rupee amounts...']);
-
-    const groqResult = await callGroqPipeline(`Patient: ${claimPatientName || 'Rameshwar Patil'}, Star Health Insurance, Denied Rs. 54,000 citing OPD manageable.`);
-
-    await new Promise(r => setTimeout(r, 400));
-    setActiveExecutingNode(3);
-    setLiveEngineLogs(prev => [...prev, `[NODE 3 · Classifier] Mapped to IRDAI Code: MED_NECESSITY in ${groqResult.latency}s (${groqResult.tokens} tokens).`]);
-
-    await new Promise(r => setTimeout(r, 400));
-    setActiveExecutingNode(4);
-    setLiveEngineLogs(prev => [...prev, `[NODE 4 · Precedent RAG] Supabase vector query: IRDAI Clause 19.3 & Ombudsman 2024/MUM/882 (Cosine: 0.96).`]);
-
-    await new Promise(r => setTimeout(r, 400));
-    setActiveExecutingNode(5);
-    setLiveEngineLogs(prev => [...prev, `[NODE 5 · Appeal Writer] Groq generated formal English petition + Devanagari Hindi summary.`]);
-
-    await new Promise(r => setTimeout(r, 400));
-    setActiveExecutingNode(6);
-    setLiveEngineLogs(prev => [...prev, `[NODE 6 · Safety Gate] Confidence 89% -> Evaluated. Ready for Dr. Anjali Desai review.`]);
-
-    await new Promise(r => setTimeout(r, 400));
-    setActiveExecutingNode(7);
-    setLiveEngineLogs(prev => [...prev, `[NODE 7 · Sync] Complete! Appeal package compiled & saved to Supabase.`]);
-
-    setIsExecutingPipeline(false);
+    setActiveAppTab('engine_studio');
   };
 
   const handleSignAndApprove = (claimId: string) => {
@@ -343,7 +327,7 @@ ${currentUser.name}`,
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#FAF8F5', color: '#1C2024', padding: '24px 32px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="app-root-container">
       <style>{LUXURY_CREAM_CSS}</style>
 
       {/* Hidden File Input */}
@@ -366,7 +350,7 @@ ${currentUser.name}`,
         }}
       />
 
-      {/* VIEW A: Landing Page */}
+      {/* VIEW A: Landing Page (Full Public Website) */}
       {currentView === 'website' && (
         <LandingPage
           onEnterApp={() => {
@@ -432,7 +416,7 @@ ${currentUser.name}`,
               isExecuting={isExecutingPipeline}
               activeNode={activeExecutingNode}
               logs={liveEngineLogs}
-              onTriggerExecution={(text) => runLive7NodePipeline(text)}
+              onTriggerExecution={(text) => {}}
             />
           )}
 
@@ -464,7 +448,7 @@ ${currentUser.name}`,
         onSaveUser={setCurrentUser}
       />
 
-      {/* Live RocketRide Observability & Telemetry Console */}
+      {/* Live RocketRide Observability Console */}
       <RocketRideConsole
         isConnected={isConnected}
         activeNode={activeExecutingNode}

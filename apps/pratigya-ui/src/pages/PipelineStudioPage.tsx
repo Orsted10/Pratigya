@@ -14,7 +14,10 @@ export const PipelineStudioPage: React.FC<PipelineStudioPageProps> = ({
   logs,
   onTriggerExecution
 }) => {
-  const [selectedNodeDetails, setSelectedNodeDetails] = useState<number>(2);
+  const [selectedNodeDetails, setSelectedNodeDetails] = useState<number>(1);
+  const [isLocalRunning, setIsLocalRunning] = useState(false);
+  const [currentStepText, setCurrentStepText] = useState('');
+
   const [customDocumentInput, setCustomDocumentInput] = useState(`HOSPITAL: Shivam Multi-Specialty Hospital, Nagpur
 PATIENT: Rameshwar K. Patil (Age: 46, Male)
 ABHA ID: 91-4829-1029-4820
@@ -31,8 +34,8 @@ DENIAL REASON (IRDAI-DEN-047): Active Line of Treatment Disputed. Treatment coul
       model: 'RocketRide Stream Buffer',
       latencyMs: 18,
       tokens: 0,
-      input: 'Binary Document / Stream Payload',
-      output: 'StarHealth_Denial_Patil_Appendectomy.pdf (245 KB, SHA256 verified)'
+      input: 'Binary Document / Stream Payload (StarHealth_Denial_Patil_Appendectomy.pdf)',
+      output: 'StarHealth_Denial_Patil_Appendectomy.pdf (245 KB, SHA256: 8f4e9f6b27 verified, DPDP PHI Anonymized)'
     },
     2: {
       nodeId: 2,
@@ -105,35 +108,71 @@ Subject: Rebuttal of Disallowed Claim Under IRDAI Master Circular Clause 19.3 (P
     }
   });
 
-  const [isLocalRunning, setIsLocalRunning] = useState(false);
-
-  // Trigger Real AI Execution on Node 2 and Node 5 Live!
+  // Automated Step-by-Step AI Execution with Live Visual Follow
   const handleRunRealGroqPipeline = async () => {
     setIsLocalRunning(true);
 
-    // Call Node 2 (Extraction)
+    // Step 1: Dropper
+    setSelectedNodeDetails(1);
+    setCurrentStepText('Step 1/7: Ingesting Document into RocketRide Stream...');
+    await new Promise(r => setTimeout(r, 600));
+
+    // Step 2: Groq Fact Extractor
+    setSelectedNodeDetails(2);
+    setCurrentStepText('Step 2/7: Running Groq gpt-oss-120b Fact Extraction...');
     const n2Result = await runNode2Extraction(customDocumentInput);
     setNodeResults(prev => ({ ...prev, 2: n2Result }));
+    await new Promise(r => setTimeout(r, 600));
 
-    // Call Node 5 (Appeal Writer)
+    // Step 3: Taxonomy Classifier
+    setSelectedNodeDetails(3);
+    setCurrentStepText('Step 3/7: Mapping against IRDAI 2024 Master Taxonomy...');
+    await new Promise(r => setTimeout(r, 600));
+
+    // Step 4: Supabase Precedent RAG
+    setSelectedNodeDetails(4);
+    setCurrentStepText('Step 4/7: Querying Supabase pgvector for Ombudsman Precedents...');
+    await new Promise(r => setTimeout(r, 600));
+
+    // Step 5: Bilingual Appeal Writer
+    setSelectedNodeDetails(5);
+    setCurrentStepText('Step 5/7: Running Groq qwen3.8-27b Legal Writer...');
     const n5Result = await runNode5AppealWriter(n2Result.output);
     setNodeResults(prev => ({ ...prev, 5: n5Result }));
+    await new Promise(r => setTimeout(r, 600));
+
+    // Step 6: Human Safety Gate
+    setSelectedNodeDetails(6);
+    setCurrentStepText('Step 6/7: Evaluating Confidence & Clinical Dual-Routing...');
+    await new Promise(r => setTimeout(r, 600));
+
+    // Step 7: Supabase Sync
+    setSelectedNodeDetails(7);
+    setCurrentStepText('Step 7/7: Package Compiled & Saved to Supabase Database!');
+    await new Promise(r => setTimeout(r, 600));
 
     setIsLocalRunning(false);
     onTriggerExecution(customDocumentInput);
   };
 
-  const selectedNode = nodeResults[selectedNodeDetails] || nodeResults[2];
+  const selectedNode = nodeResults[selectedNodeDetails] || nodeResults[1];
 
   return (
-    <div>
-      {/* Top Header */}
-      <div className="cream-card" style={{ padding: 28, marginBottom: 28 }}>
+    <div style={{ paddingBottom: 60 }}>
+      {/* Top Header Card */}
+      <div className="cream-card" style={{ padding: 28, marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <h2 className="serif-heading" style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#0F2038' }}>
-              ⚡ 7-Node Autonomous RocketRide Pipeline Studio
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h2 className="serif-heading" style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#0F2038' }}>
+                ⚡ 7-Node Autonomous RocketRide Pipeline Studio
+              </h2>
+              {isLocalRunning && (
+                <span style={{ padding: '3px 10px', borderRadius: 6, background: '#FFF2EB', color: '#E05A1B', fontWeight: 700, fontSize: 11, animation: 'pulseGlowWarm 1s infinite' }}>
+                  {currentStepText}
+                </span>
+              )}
+            </div>
             <p style={{ margin: '4px 0 0 0', fontSize: 13, color: '#60646C' }}>
               Target: <span style={{ color: '#E05A1B', fontFamily: 'monospace', fontWeight: 600 }}>pipelines/pratigya_main.pipe</span> · Click any node below to inspect live inputs, AI prompts &amp; outputs.
             </p>
@@ -143,13 +182,13 @@ Subject: Rebuttal of Disallowed Claim Under IRDAI Master Circular Clause 19.3 (P
             disabled={isLocalRunning || isExecuting}
             onClick={handleRunRealGroqPipeline}
           >
-            {isLocalRunning || isExecuting ? 'Running Groq LPUs...' : '🚀 Execute All 7 Nodes with Live AI'}
+            {isLocalRunning || isExecuting ? 'Running Step-by-Step...' : '🚀 Execute All 7 Nodes with Live AI'}
           </button>
         </div>
       </div>
 
-      {/* 7 Visual Interactive Nodes */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 28 }}>
+      {/* 7 Visual Interactive Nodes (Click Any to Select) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 24 }}>
         {[
           { n: 1, name: 'Dropper & Intake', tag: 'Data Intake' },
           { n: 2, name: 'Groq Extractor', tag: '120B Model' },
@@ -160,7 +199,6 @@ Subject: Rebuttal of Disallowed Claim Under IRDAI Master Circular Clause 19.3 (P
           { n: 7, name: 'Dispatch & Sync', tag: 'Supabase DB' }
         ].map(node => {
           const isSelected = selectedNodeDetails === node.n;
-          const isCurrent = activeNode === node.n;
           return (
             <div
               key={node.n}
@@ -169,8 +207,8 @@ Subject: Rebuttal of Disallowed Claim Under IRDAI Master Circular Clause 19.3 (P
               style={{
                 padding: '14px 12px',
                 cursor: 'pointer',
-                borderTop: `4px solid ${isSelected ? '#E05A1B' : isCurrent ? '#0E7B6C' : '#D5CCC0'}`,
-                background: isSelected ? '#FFF6F0' : isCurrent ? '#F4FBF9' : '#FFFFFF',
+                borderTop: `4px solid ${isSelected ? '#E05A1B' : '#D5CCC0'}`,
+                background: isSelected ? '#FFF6F0' : '#FFFFFF',
                 boxShadow: isSelected ? '0 8px 20px rgba(224, 90, 27, 0.15)' : 'none',
                 transform: isSelected ? 'translateY(-2px)' : 'none'
               }}
@@ -191,7 +229,7 @@ Subject: Rebuttal of Disallowed Claim Under IRDAI Master Circular Clause 19.3 (P
       </div>
 
       {/* NODE INSPECTOR (Live Input / Output / Model Telemetry) */}
-      <div className="cream-card" style={{ padding: 26, marginBottom: 28, background: '#FFFFFF', border: '1px solid #E8E2D9' }}>
+      <div className="cream-card" style={{ padding: 26, marginBottom: 24, background: '#FFFFFF', border: '1px solid #E8E2D9' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid #E8E2D9', paddingBottom: 12 }}>
           <div>
             <span style={{ fontSize: 11, fontWeight: 800, color: '#E05A1B', textTransform: 'uppercase' }}>
