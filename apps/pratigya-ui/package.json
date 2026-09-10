@@ -8,11 +8,13 @@
     "id": "pratigya_health.pratigya",
     "publisher": "pratigya_health",
     "name": "Pratigya - Denial Recovery Desk",
-    "description": "Pratigya - Denial Recovery Desk — a RocketRide app",
+    "description": "Autonomous sovereign healthcare denial recovery platform powered by Groq LPU & Supabase pgvector on RocketRide",
     "icon": "./icon.svg",
     "readme": "./README.md",
     "categories": [
-      "custom"
+      "healthcare",
+      "finance",
+      "ai"
     ],
     "mode": "free",
     "authenticated": false,
